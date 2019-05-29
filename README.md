@@ -18,4 +18,6 @@ The directories below constitute the major routines of the code:
 # To Do
 Lots of things.
 1. Add damping?
-2. Cleanup postproc routines
+2. Cleanup postproc routines, it's a mess.
+3. Add nonlinear time stepping routine
+4. Add Large-scale Finite-difference scheme to describe limit cycle
