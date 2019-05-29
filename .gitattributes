@@ -1,0 +1,38 @@
+# Normalize these files
+
+## set the default behavior
+*      text=auto
+
+## enforce fortran files to have Linux/Mac line endings
+*.f    text eol=lf
+*.F    text eol=lf
+*.f90  text eol=lf
+*.F90  text eol=lf
+*.f03  text eol=lf
+*.F03  text eol=lf
+
+## Matlab files
+*.m    text
+*.fig  binary
+*.mat  binary
+
+## other misc. text files
+*.nb   text
+*.dat  text
+*.md   text
+*.tex  text
+*.tikz text
+*.svg  text
+
+## MS Word Files
+*.doc diff=word
+*.docx diff=word
+
+## define some common binary files
+*.png  binary
+*.jpg  binary
+*.gif  binary
+*.h5   binary
+*.xcf  binary
+
+

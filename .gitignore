@@ -1,0 +1,56 @@
+# Ignore files:
+*.avi
+## General files
+*~
+*.o
+*.mod
+\#*\#
+~*
+.$*$
+
+## images/data
+*.tif
+*.chd
+*.zip
+*.tar.gz
+*.avi
+*.pdf
+*.png
+*.cine
+
+## matlab files
+*.asv
+*.mex*
+codegen/
+*.mat
+*.fig
+*.html
+
+## LaTeX files
+*.synctex.gz
+*.bak
+*.aux
+*.log
+*.out
+*.bbl
+*.blg
+*.spl
+*.ps
+*.dvi
+*.lof
+*.lop
+*.lot
+*.toc
+*.idx
+*.ilg
+*.ind
+
+## Windows files
+Thumbs.db
+
+## UVLM files
+*.DAT
+*.OUT
+*.plt
+*.PLT
+*.swp
