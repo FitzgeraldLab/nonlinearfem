@@ -287,9 +287,8 @@ if flags.plot_q0
 end
 
 %% Initialize output files
-
 if flags.output.hdf5
-    hfilename_datestr = datestr(now);
+    hfilename_datestr = datestr(now,'yyyy-mm-dd.HH-MM-SS');
     hfilename = sprintf('data.%s.h5', hfilename_datestr );
 end
 

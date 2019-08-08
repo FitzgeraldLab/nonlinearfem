@@ -6,8 +6,7 @@ clc
 
 
 %%
-% infiletag = '17-Jul-2019 14:34:14';
-infiletag = '26-Jul-2019 14:58:09';
+infiletag = '2019-08-08.14-54-54';
 
 comment = 'skip1';
 
