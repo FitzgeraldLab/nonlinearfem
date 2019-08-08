@@ -17,6 +17,7 @@ addParameter(p,      'alpha0',           1.0, @isnumeric);
 addParameter(p,   'points_per_elem',      10, @isnumeric);
 addParameter(p,   'gridlines',             0, @isnumeric);
 addParameter(p,       'field',  'displacement-norm2',   @ischar);
+addParameter(p, 'field_range',           nan, @isnumeric);
 addParameter(p,   'smoothing',             0, @isnumeric);
 
 % Parse the inputs
@@ -28,7 +29,9 @@ alpha0         = p.Results.alpha0;
 npoints        = p.Results.points_per_elem;
 flag_gridlines = p.Results.gridlines;
 flag_field     = p.Results.field;
+flag_field_range=p.Results.field_range;
 flag_smoothing = p.Results.smoothing;
+
         
 %%
 
@@ -120,6 +123,11 @@ for e = e_in
             'EdgeColor', opt_EdgeColor, ...
             'FaceColor', opt_FaceColor );
         
+        if isnan(flag_field_range)
+            caxis(axes_handle, 'auto');
+        else
+            caxis(axes_handle, flag_field_range);
+        end
         
         alpha(h1, alpha0);
         %hnum = hnum + 1;
