@@ -52,12 +52,11 @@ BC_xL = 'c';
 matype0 = 1;
 
 % Plotting options
-flags.plot_ref = 0;
+flags.plot_ref = 1;
 flags.plot_RestNodes = 1;
 flags.plot_fancy = 1;
-flags.plot_steps = 0;
+flags.plot_steps = 1;
 flags.plot_steps_nskip = 10;
-flags.plot_dampingFactors = 0;
 
 % output options
 flags.output.hdf5 = 1;
@@ -156,43 +155,8 @@ A_Fext = find_A_ExtLoad(Fext_location, Fext_surface, ...
     nnp, IEN, g_list, nen, ned, nel, eltype, fix, 'resort', true, 'resort_fcn', @symamd);
 
 %% plot reference configuration
-
-if( flags.plot_ref > 0 )
-    
-    fig = figure();
-    ax = axes('Parent',fig,'DataAspectRatio',[1 1 1]);
-    
-    hold(ax, 'on');
-    xlabel(ax,'x');
-    ylabel(ax,'y');
-    zlabel(ax,'z');
-    grid(ax,'on');
-    
-    xlim(ax, Lx*[-0.05, 1.05])
-    ylim(ax, Ly*[-0.05, 1.05])
-    
-    title(ax, 'Reference plot' );
-    
-    [ps_nel, ps_eltype, ps_IEN] = parse_msh( msh, 'plot_surface');
-    plot_element(ax,1:ps_nel,'g', ps_IEN, ps_eltype, x, y, z);
-    
-    qn = zeros(neq+ng, 1);
-    plot_node_solution(ax, ID, x, y, z, qn, 'A_in', A_Fext, ...
-        'markercolor', 'r');
-    
-    if flags.plot_RestNodes == 1
-        plot_node_solution(ax, ID, x, y, z, qn, 'A_in', A_Fext, ...
-        'markercolor', 'r');
-    
-        plot_node_solution(ax, ID, x, y, z, qn, 'A_in', A_BC, ...
-        'markercolor', 'b', 'marker', 'o');
-    end
-    
-    if( flags.plot_ref == 2 )
-        % for debugging, stop the script here once the ref has been plotted
-        return
-    end
-    
+if flags.plot_ref > 0 
+    plot_ref(Lx, Ly, x, y, z, ID, neq, ng, msh, flags, A_Fext, A_BC);
 end
 
 %% build Mass and Stiffness Matrices
@@ -212,88 +176,43 @@ if flags.output.hdf5
     hfilename = sprintf('data.%s.h5', hfilename_datestr );
 end
 
-%% Init plot
+%% Init plot per step
 if flags.plot_steps > 0
-    
-    % plot the initial conditions
-    ps_alpha = 0.5;
-    fig = figure();
-    ax = axes('Parent', fig, 'DataAspectRatio', [1, 1, 1]);
-    hold(ax, 'on');
-    xlabel(ax,'x');
-    ylabel(ax,'y');
-    zlabel(ax,'z');
-    grid(ax,'on');
-    view(ax, [40,16]);
-    
-    zlim(ax, [-1,1]*4*Lz);
-    xlim(ax, [-0.1,1]*1.2*Lx);
-    ylim(ax, [-0.1,1.1]*Ly);
-    
-    [ps_nel, ps_eltype, ps_IEN] = parse_msh( msh, 'plot_surface');
-    
-    if flags.plot_fancy == 0
-        hlist = plot_element_solution_hdsurf(ax, 1:ps_nel, 1, ...
-            [0, 0, 1], ps_IEN, ID, ps_eltype, x, y, z, q0, ...
-            ps_alpha, 0);
-        
-    elseif flags.plot_fancy == 1
-        hlist = plot_element_solution_hdsurf_coloredByDeformation(...
-            ax, ps_IEN, ID, ps_eltype, x, y, z, q0, ...
-            'field', 'displacement-z', ...
-            'smoothing', 1, ...
-            'alpha0', ps_alpha);
-    end
-    
+    [fig, ax, hlist] = plot_steps_init(q0, x, y, z, ID, msh, flags, ...
+        Lx, Ly, Lz);
 end
 
 
 %% Load Stepping
-
 fprintf(1,'----------------------\n');
 fprintf(1,'Load Step:\n');
-
+Fext_load = 0;
 for n = 1:N_load_steps
     
-    [qn, iter] = loadStep_step(qn, load_increment, ...
+    %% increase the load
+    Fext_load = Fext_load + DP;
+    
+    %% solve for new positions (tracing equilibrium here is a simple
+    % continuation scheme)
+    [qn, iter] = loadStep_step(qn, Fext_load, Fext_direction, ...
     LM, ned, nen, nnp, nel, eltype, matype,...
     KK_idx_I, KK_idx_J,...
     E, x, y, z, IEN, ID, quad_rules, nu,...
     freefree_range, freefix_range);
     
-    
-    % output results
+    %% output results
     if flags.output.hdf5
         write_hdf5_snapshot( hfilename, n, qn, load, ...
             'writeDateTime', true, 'subIter', iter.i);
     end
     
-    %%
-    % update plot(s)
+    %% update step plot(s)
     if flags.plot_steps == 1 && mod(n,flags.plot_steps_nskip) == 0
-        delete(hlist);
-        if flags.plot_fancy == 0
-            hlist = plot_element_solution_hdsurf(ax, 1:ps_nel, 1, ...
-                [0, 0, 1], ps_IEN, ID, ps_eltype, x, y, z, qn, ...
-                ps_alpha, 0);
-            
-        elseif flags.plot_fancy == 1
-            hlist = plot_element_solution_hdsurf_coloredByDeformation(...
-                ax, ps_IEN, ID, ps_eltype, x, y, z, qn, ...
-                'field', 'displacement-z', ...
-                'smoothing', 1, ...
-                'alpha0', ps_alpha,...
-                'scalefactor', 1);
-        end
-        
-        title(sprintf('n=%5d, t= %5.2e', n, t) );
-        
-        pause(0.01);
+        hlist = plot_steps(ax, hlist, qn, x, y, z, ID, msh, flags, n, load);
     end
     
     
-    %%
-    % check killflag
+    %% check killflag
     if flags.checkKillFile
         flags.kill = checkKillFile();
         if flags.kill
@@ -303,7 +222,7 @@ for n = 1:N_load_steps
     
     
 end
-N_t_endstep = n;
+N_load_endstep = n;
 
 %%
 if flags.output.hdf5
