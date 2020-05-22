@@ -49,7 +49,7 @@ BC_xL = 'c';
 matype0 = 2;
 
 % Plotting options
-flags.plot_ref = 0;
+flags.plot_ref = 1;
 flags.plot_RestNodes = 1;
 flags.plot_fancy = 1;
 flags.plot_steps = 0;
