@@ -12,7 +12,7 @@ clc
 
 % Load stepping details
 % number of steps to take
-N_load_steps = 30;
+N_load_steps = 10;
 
 % loading increment (negative or positive to pick direction)
 DP   = 1e-10;
@@ -57,6 +57,9 @@ flags.plot_RestNodes = 1;
 flags.plot_fancy = 1;
 flags.plot_steps = 1;
 flags.plot_steps_nskip = 1;
+
+% substep options
+flags.verbose = 1;
 
 % output options
 flags.output.hdf5 = 1;
@@ -186,7 +189,12 @@ end
 
 %% Load Stepping
 fprintf(1,'----------------------\n');
-fprintf(1,'Load Step:\n');
+if flags.verbose
+    % n, Fext_load, iter.i , rel_error, wall_time
+    % %6d, %6.2e, %4d, %5.1e, %6.2
+    fprintf(1,' Step | Load    | iter | err    | time \n');
+    fprintf('------------------------------------------\n')
+end
 Fext_load = 0;
 for n = 1:N_load_steps
     
@@ -199,7 +207,7 @@ for n = 1:N_load_steps
     LM, ned, nen, nnp, nel, eltype, matype,...
     KK_idx_I, KK_idx_J,...
     E, x, y, z, IEN, ID, quad_rules, nu,...
-    freefree_range, freefix_range, neq, gg);
+    freefree_range, freefix_range, neq, gg, n, flags.verbose);
     
     %% output results
     if flags.output.hdf5

@@ -2,15 +2,15 @@ function [qi, iter] = loadStep_step(qn, Fext_load, Fext_direction, A_Fext, ...
     LM, ned, nen, nnp, nel, eltype, matype,...
     KK_idx_I, KK_idx_J,...
     E, x, y, z, IEN, ID, quad_rules, nu,...
-    freefree_range, freefix_range, neq, gg)
+    freefree_range, freefix_range, neq, gg, n, verbose)
 
 % Solver options:
-iter.max_steps = 20;
+iter.max_steps = 200;
 iter.rel_tol = 1e-6;
 iter.equil = 0;
 iter.i = 0;
 relaxation.flag = true;
-relaxation.omega = 1; % 1:Newton's method, 0 < omega < 1 Successive over relaxation
+relaxation.omega = 0.9; % 1:Newton's method, 0 < omega < 1 Successive over relaxation
 
 qi = qn;
 
@@ -52,7 +52,7 @@ while iter.equil == 0
         % This can help stabilize things by slowing down the convergence on
         % purpose.
         omega = relaxation.omega;
-        qi(freefree_range) = (1-omega)*qi(freefree_range) + omega*Dq;
+        qi(freefree_range) = qi(freefree_range) + omega*Dq;
         
     else
         qi(freefree_range) = qi(freefree_range) + Dq;
@@ -64,12 +64,17 @@ while iter.equil == 0
     
     if rel_error <= iter.rel_tol
         wall_time = toc(walltime1);
-        fprintf('step= %6d, i=%4d, error= %.1e, wall step time = %.3e\n', Fext_load, iter.i , rel_error, wall_time);
+        
+        if verbose
+            fprintf('%6d, %8.2e, %5d, %5.1e, %6.2e\n', ...
+                n, Fext_load, iter.i , rel_error, wall_time);
+        end
+        
         iter.equil = 1;
         
     elseif iter.i >= iter.max_steps
         iter.equil = -1;
-        error('Solution has not convergered at:\n\tstep = %.d\n\ti = %d\n', Fext_load, iter.i);
+        error('Solution has not convergered at:\n\tstep = %d\n\ti = %d\n', Fext_load, iter.i);
     end
     
 end
