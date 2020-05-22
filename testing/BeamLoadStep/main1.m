@@ -12,10 +12,10 @@ clc
 
 % Load stepping details
 % number of steps to take
-N_load_steps = 3000;
+N_load_steps = 30;
 
 % loading increment (negative or positive to pick direction)
-DP   = -1e-5;
+DP   = 1e-10;
 
 % loading location info
 Fext_location = "center"; % center or edge
@@ -56,7 +56,7 @@ flags.plot_ref = 1;
 flags.plot_RestNodes = 1;
 flags.plot_fancy = 1;
 flags.plot_steps = 1;
-flags.plot_steps_nskip = 10;
+flags.plot_steps_nskip = 1;
 
 % output options
 flags.output.hdf5 = 1;
@@ -146,7 +146,8 @@ g_list = sparse(ned,nnp); % all are always zero
 A_BC = union(A4, A2);
 
 %% External forcing on nodes
-% find the set of nodes where the external forces directly act
+% find the set of nodes where the external forces directly act.  Be sure
+% that these nodes are NOT on a boundary.
 A_Fext = find_A_ExtLoad(Fext_location, Fext_surface, ...
     Lx, Ly, Lz, x, y, z);
 
@@ -194,21 +195,21 @@ for n = 1:N_load_steps
     
     %% solve for new positions (tracing equilibrium here is a simple
     % continuation scheme)
-    [qn, iter] = loadStep_step(qn, Fext_load, Fext_direction, ...
+    [qn, iter] = loadStep_step(qn, Fext_load, Fext_direction, A_Fext, ...
     LM, ned, nen, nnp, nel, eltype, matype,...
     KK_idx_I, KK_idx_J,...
     E, x, y, z, IEN, ID, quad_rules, nu,...
-    freefree_range, freefix_range);
+    freefree_range, freefix_range, neq, gg);
     
     %% output results
     if flags.output.hdf5
-        write_hdf5_snapshot( hfilename, n, qn, load, ...
+        write_hdf5_snapshot( hfilename, n, qn, Fext_load, ...
             'writeDateTime', true, 'subIter', iter.i);
     end
     
     %% update step plot(s)
     if flags.plot_steps == 1 && mod(n,flags.plot_steps_nskip) == 0
-        hlist = plot_steps(ax, hlist, qn, x, y, z, ID, msh, flags, n, load);
+        hlist = plot_steps(ax, hlist, qn, x, y, z, ID, msh, flags, n, Fext_load);
     end
     
     

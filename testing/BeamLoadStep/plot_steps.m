@@ -1,5 +1,7 @@
 function hlist = plot_steps(ax, hlist, qn, x, y, z, ID, msh, flags, n, load)
 
+ps_alpha = 0.5;
+
 delete(hlist);
 [ps_nel, ps_eltype, ps_IEN] = parse_msh( msh, 'plot_surface');
 
