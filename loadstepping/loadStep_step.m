@@ -37,7 +37,7 @@ while iter.equil == 0
     for j = 1:length(A_Fext)
         P = ID(Fext_direction, A_Fext(j) );
         if P <= neq % bounds check to only load DOF and not boundaries
-            RHS(P)= RHS(P) + Fext_load;
+            RHS(P)= RHS(P) + Fext_load/length(A_Fext); % so total load is Fext_load
         end
     end
 
@@ -66,7 +66,7 @@ while iter.equil == 0
         wall_time = toc(walltime1);
         
         if verbose
-            fprintf('%6d, %8.2e, %5d, %5.1e, %6.2e\n', ...
+            fprintf('%6d, %-8.2e, %5d, %5.1e, %6.2e\n', ...
                 n, Fext_load, iter.i , rel_error, wall_time);
         end
         

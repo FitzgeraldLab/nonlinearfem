@@ -12,18 +12,15 @@ clc
 
 % Load stepping details
 % number of steps to take
-N_load_steps = 10;
+N_load_steps = 50;
 
 % loading increment (negative or positive to pick direction)
-DP   = 1e-10;
+DP   = -1e-5;
 
 % loading location info
 Fext_location = "center"; % center or edge
 Fext_surface = "top"; % top, center, or bottom
 Fext_direction = 3; % 1->x, 2->y, 3->z
-
-iter.max_steps = 200;
-iter.rel_tol = 1e-12;
 
 % Material constants
 E0   = 1;
@@ -49,14 +46,15 @@ BC_xL = 'c';
 
 % Material Model
 % 1= Kirchhoff, 2= Biot
-matype0 = 1;
+matype0 = 2;
 
 % Plotting options
-flags.plot_ref = 1;
+flags.plot_ref = 0;
 flags.plot_RestNodes = 1;
 flags.plot_fancy = 1;
-flags.plot_steps = 1;
-flags.plot_steps_nskip = 1;
+flags.plot_steps = 0;
+field_range = nan; % or [-2*Lz, 0];
+flags.plot_steps_nskip = 10;
 
 % substep options
 flags.verbose = 1;
@@ -171,6 +169,13 @@ qn = zeros(ndofs,1);
 [~,KK_idx_I,KK_idx_J] = get_nnz_CheckAssembly(LM, ned, nen, nnp, nel, ...
     eltype);
 
+% Build K once to check if there are errors.  This step can be removed in
+% production use.
+[K,~] = assemble_K(LM, ned, nen, nnp, nel, eltype, matype,...
+    KK_idx_I, KK_idx_J,...
+    E, x, y, z, IEN, ID, qn, quad_rules, nu);
+
+
 %% build the initial conditions:
 q0 = zeros(ndofs,1);
 
@@ -188,11 +193,9 @@ end
 
 
 %% Load Stepping
-fprintf(1,'----------------------\n');
+fprintf('------------------------------------------\n')
 if flags.verbose
-    % n, Fext_load, iter.i , rel_error, wall_time
-    % %6d, %6.2e, %4d, %5.1e, %6.2
-    fprintf(1,' Step | Load    | iter | err    | time \n');
+    fprintf(' Step | Load     | iter | err    | time \n');
     fprintf('------------------------------------------\n')
 end
 Fext_load = 0;
@@ -217,7 +220,8 @@ for n = 1:N_load_steps
     
     %% update step plot(s)
     if flags.plot_steps == 1 && mod(n,flags.plot_steps_nskip) == 0
-        hlist = plot_steps(ax, hlist, qn, x, y, z, ID, msh, flags, n, Fext_load);
+        hlist = plot_steps(ax, hlist, qn, x, y, z, ID, msh, flags, n, ...
+            Fext_load, field_range);
     end
     
     

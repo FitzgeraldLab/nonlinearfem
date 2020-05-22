@@ -16,6 +16,8 @@ zlim(ax, [-1,1]*4*Lz);
 xlim(ax, [-0.1,1]*1.2*Lx);
 ylim(ax, [-0.1,1.1]*Ly);
 
+colorbar(ax);
+
 [ps_nel, ps_eltype, ps_IEN] = parse_msh( msh, 'plot_surface');
 
 if flags.plot_fancy == 0

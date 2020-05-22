@@ -1,4 +1,5 @@
-function hlist = plot_steps(ax, hlist, qn, x, y, z, ID, msh, flags, n, load)
+function hlist = plot_steps(ax, hlist, qn, x, y, z, ID, msh, flags, ...
+    n, load, field_range)
 
 ps_alpha = 0.5;
 
@@ -16,9 +17,10 @@ elseif flags.plot_fancy == 1
         'field', 'displacement-z', ...
         'smoothing', 1, ...
         'alpha0', ps_alpha,...
-        'scalefactor', 1);
+        'scalefactor', 1, ...
+        'field_range', field_range);
 end
 
-title(sprintf('n=%5d, load=%6.2f', n, load) );
+title(sprintf('n=%5d, load=%-8.2e', n, load) );
 
 pause(0.01);
