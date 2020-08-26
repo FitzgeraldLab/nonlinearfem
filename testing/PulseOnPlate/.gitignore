@@ -1,0 +1,10 @@
+# local ignore file
+
+temp.geo
+temp.msh
+
+killfile
+
+*.mat
+*.h5
+*.avi
