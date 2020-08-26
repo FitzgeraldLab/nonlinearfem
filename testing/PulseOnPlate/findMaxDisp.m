@@ -1,5 +1,5 @@
 %%
-function output = findMaxDisp(hfile, ID, n_range)
+function output = findMaxDisp(hfile, ID, n_range, xyz)
 
 
 [ned,nnp] = size(ID);
@@ -11,29 +11,35 @@ umin = 10000*zeros(ned,1);
 idx_min = zeros(ned,1);
 nstep_min = zeros(ned,1);
 
-for n = n_range
+A = 1:nnp;
 
+for n = n_range
+    
     qn = h5read( hfile, sprintf('/%d/qn', n) );
     
     for i = 1:ned
         
-        p = ID(i,:);
+        p = ID(i,A);        
+        % compute position component i of each node
+        ri = qn(p) + xyz(A,i);
         
-        [localmax,maxidx] = max(qn(p));
+        [localmax,maxidx] = max( ri );
         if localmax > umax(i)
-            idx_max(i) = maxidx;
+            %                 idx_max(i) = maxidx;
             umax(i) = localmax;
             nstep_max(i) = n;
         end
         
-        [localmin,minidx] = min(qn(p));
+        [localmin,minidx] = min( ri );
         if localmin < umin(i)
-            idx_min(i) = minidx;
+            %                 idx_min(i) = minidx;
             umin(i) = localmin;
             nstep_min(i) = n;
         end
         
-    end   
+        
+        
+    end
     
 end
 

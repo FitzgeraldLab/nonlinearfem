@@ -6,22 +6,19 @@ clc
 
 
 %%
-infiletag = '2019-08-08.14-54-54';
+infiletag = '2020-08-25.21-50-59';
 
 comment = 'skip1';
 
 load(['data.',infiletag, '.mat']);
 hfile = ['data.',infiletag, '.h5'];
 
-% Tracking nodes
-A_list = [ 6, 3, 30, 96 ];
-
 dt_skip = 1;
+N_t_endstep = 3000;
 
 % Plotting options
 flags.plot_fancy = 1;
-flags.plot_marks = 1;
-flags.plot_restraints = 1;
+flags.plot_restraints = 0;
 flags.plot_colormap = 'rwb'; % {default,parula}, {Div}
 flags.mov.mp4 = 1;
 
@@ -38,7 +35,7 @@ addpath(fullfile(ROOTDIR,'shapefunctions'));
 %% Search through field for color scaling
 N_to_sample = ceil( 0.25*N_t_endstep );
 n_list = sort([1, randi([2,N_t_endstep], [1, N_to_sample])]);
-max_info = findMaxDisp(hfile, ID, n_list);
+max_info = findMaxDisp(hfile, ID, n_list, [x, y, z]);
 
 
 %%
@@ -61,10 +58,8 @@ view(ax, [40,16]);
 
 xlim(ax, [-0.1,1]*1.2*Lx);
 ylim(ax, [-0.1,1.1]*Ly);
+zlim(ax, [-1.1,1.1]*max_info.box.symmetric(3) );
 
-% zlim(ax, [floor(max_info.min.val(3)), ceil(max_info.max.val(3))] );
-%zlim(ax, [1.2*max_info.min.val(3), 1.2*max_info.max.val(3)] );
-zlim(ax,[-1,1]*0.25);
 
 if any( strcmpi( flags.plot_colormap, {'','default', 'parula'}) )
     colormap(ax,parula);
@@ -130,14 +125,6 @@ for n = 1:dt_skip:N_t_endstep
             'smoothing', 1, ...
             'alpha0', ps_alpha,...
             'scalefactor', 1);
-    end
-    
-    %%
-    if flags.plot_marks
-
-        h1 = plot_node_solution(ax, ID, x, y, z, qn, 'A_in', A_list, 'marker', 'o', 'markersize', 10);
-        hlist = [h1,hlist];
-        
     end
     
     %%
