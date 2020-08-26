@@ -11,7 +11,7 @@ clc
 %% Define parameters
 
 % Time integration stuff
-N_t_steps = 100;
+N_t_steps = 10000;
 iter.max_steps = 200;
 iter.rel_tol = 1e-12;
 
@@ -54,17 +54,19 @@ BC_x0 = 'c';
 matype0 = 1;
 
 % setup forcing function
-forcingparams.A = 1.2;
-forcingparams.omega = omega1*2; % roughly omega2
+forcingparams.rel_amp = 4; % relative to Lz
+forcingparams.omega = omega1*1.4; % roughly omega2
 forcingparams.dir = 3;
-forcing = @(X,Y,Z,t) simpleForcing(X,Y,Z,t,forcingparams);
+
+% setup boundary motion
+kineForcingFcn = @(t) boundaryMotion(t,[]);
 
 % Plotting options
-flags.plot_ref = 0;
+flags.plot_ref = 1;
 flags.plot_RestNodes = 1;
 flags.plot_fancy = 1;
 flags.plot_q0 = 0;
-flags.plot_steps = 0;
+flags.plot_steps = 1;
 flags.plot_steps_nskip = 10;
 flags.plot_dampingFactors = 0;
 
@@ -153,7 +155,7 @@ g_list = sparse(ned,nnp); % all are always zero
 
 % BC's for X = 0
 [fix, A4] = apply_BC2face(msh, x, y, z, fix, 'face4', BC_x0);
-
+A_kineForcing = A4;
 
 %% Construct the IM and LM Matricies
 [ID, LM, neq, gg, nee, ng, freefree_range, freefix_range] = build_mesh(...
@@ -181,7 +183,10 @@ if( flags.plot_ref > 0 )
     plot_element(ax,1:ps_nel,'g', ps_IEN, ps_eltype, x, y, z);
     
     qn = zeros(neq+ng, 1);
-    plot_node_solution(ax, ID, x, y, z, qn, 'A_in', unique(f_IEN), 'markercolor', 'g');
+    plot_node_solution(ax, ID, x, y, z, qn, 'A_in', A_kineForcing, ...
+        'markercolor', 'b', 'marker', '*');
+    plot_node_solution(ax, ID, x, y, z, qn, 'A_in', unique(f_IEN), ...
+        'markercolor', 'r', 'marker', 'o');
     
     if( flags.plot_ref == 2 )
         % for debugging, stop the script here once the ref has been plotted
@@ -219,6 +224,12 @@ E(:) = E0;
     KK_idx_I, KK_idx_J,...
     E, x, y, z, IEN, ID, qn, quad_rules, nu);
 K1 = K(freefree_range,freefree_range);
+
+%% setup Forcing
+% so max amplitude is approx. pre set
+
+forcingparams = scale_forcing_params(forcingparams, min(E), Lx, Ly, Lz);
+forcingFcn = @(X,Y,Z,t) simpleForcing(X,Y,Z,t,forcingparams);
 
 
 %% build the initial conditions:
@@ -352,13 +363,13 @@ t = 0;
 [qn, qdn, qddn] = setKinematics( t, qn, qdn, qddn, A_kineForcing, ID, kineForcingFcn);
 for n = 1:N_t_steps
     
-    [qn, qdn, qddn, iter] = genAlpha_step(t,dt,qn,qdn,qddn, ...
+    [qn, qdn, qddn, iter] = genAlpha_step_forcing(t,dt,qn,qdn,qddn, ...
         M, M1, D, D1, rho_inf, ...
         LM, ned, nen, nnp, nel, eltype, matype,...
         KK_idx_I, KK_idx_J,...
         E, x, y, z, IEN, ID, quad_rules, nu,...
         freefree_range, freefix_range,...
-        A_kineForcing, kineForcingFcn);
+        A_kineForcing, kineForcingFcn, forcingFcn, f_IEN, f_eltype, f_nel);
     
     t = t+dt;    
     
