@@ -6,6 +6,9 @@ if any( strcmpi(location, ["center", "mid"]) )
     
 elseif any( strcmpi(location, ["L", "edge"]) )
     xpos = Lx;
+    
+elseif any( strcmpi(location, ["all", "entire", "span"]) )
+    xpos = NaN;
 else
     error("Location <%s> is an unknown option", location)
 end
@@ -27,7 +30,11 @@ end
 %% search    
 % Now each for the set of nodes that are in this region
 tol = 1e-6;
-A1 = find( abs(x - xpos) < tol );
+if ~isnan(xpos)
+    A1 = find( abs(x - xpos) < tol );
+else
+    A1 = 1:length(x);
+end
 A2 = abs(z(A1) - zpos) < tol;
 
 A = A1(A2);

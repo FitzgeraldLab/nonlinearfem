@@ -18,7 +18,7 @@ N_load_steps = 50;
 DP   = -1e-5;
 
 % loading location info
-Fext_location = "center"; % center or edge
+Fext_location = "span"; % center, edge, span
 Fext_surface = "top"; % top, center, or bottom
 Fext_direction = 3; % 1->x, 2->y, 3->z
 
@@ -69,8 +69,11 @@ flags.checkKillFile = 1;
 %% Set lesser used options
 
 ROOTDIR = fullfile('../..');
-% gmsh_exe = '~/software/gmsh-3.0.6-Linux64/bin/gmsh';
-gmsh_exe= 'C:\Users\tim\software\gmsh\gmsh-2.10.1-Windows\gmsh.exe';
+if ispc
+    gmsh_exe= [getenv('USERPROFILE'),'\software\gmsh\gmsh-2.16.0-Windows\gmsh.exe'];
+else
+    gmsh_exe = '~/software/gmsh-3.0.6-Linux64/bin/gmsh';
+end
 path(pathdef)
 addpath(fullfile(ROOTDIR,'preprocmesh'));
 addpath(fullfile(ROOTDIR,'assemble'));
