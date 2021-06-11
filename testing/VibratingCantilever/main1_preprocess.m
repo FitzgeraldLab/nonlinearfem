@@ -26,7 +26,7 @@ omega1 = 2*pi*1; % [1 hz to rad/s]
 
 % Plate geometry
 Lx = 1;
-Ly = 0.1;
+Ly = 0.05;
 Lz = Ly;
 
 % Num. of Elements in each direction
@@ -178,7 +178,7 @@ E(:) = E0;
 
 %% Pack the outputs
 save('mesh.mat', 'msh', ...
-    'x', 'y', 'z', 'nnp', 'nel', 'eltype', 'IEN', 'rho', ...
+    'x', 'y', 'z', 'nnp', 'nel', 'eltype', 'IEN', 'rho', 'quad_rules', ...
     'E', 'nu', 'ID', 'LM', 'neq', 'gg', 'ng', 'freefree_range', ...
     'freefix_range', 'ndofs', 'KK_idx_I', 'KK_idx_J', 'omega1', ...
-    'matype', 'A_Fext', 'A_BC');
+    'matype', 'A_Fext', 'A_BC', 'Fext_direction');

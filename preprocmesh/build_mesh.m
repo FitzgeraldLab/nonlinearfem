@@ -39,7 +39,7 @@ ng = full(sum(sum(fix>0)));
 ID = zeros(ned,nnp);
 totaldof = ned*nnp;
 
-gg = zeros( nnz(fix), 1);
+gg = zeros( 1, nnz(fix));
 
 % loop over all nodes
 if( nnz(fix) > 0 )

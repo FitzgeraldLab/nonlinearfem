@@ -58,7 +58,7 @@ while iter.equil == 0
         qi(freefree_range) = qi(freefree_range) + Dq;
     end
     
-    % Convergence Check
+    % Convergece Check
     rel_error = norm(Dq,2);
     iter.rel_error(iter.i) = rel_error;
     

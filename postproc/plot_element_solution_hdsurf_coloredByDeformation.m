@@ -55,7 +55,7 @@ for e = e_in
         ve = zeros(nen_e,1);
         we = zeros(nen_e,1);
         
-        for a = 1:nen_e;
+        for a = 1:nen_e
             
             idxA = IEN(a,e);
             xe(a) = x(idxA);
