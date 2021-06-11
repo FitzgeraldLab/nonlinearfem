@@ -47,16 +47,6 @@ matype0 = 2;
 flags.plot_ref = 1;
 flags.plot_RestNodes = 1;
 flags.plot_fancy = 1;
-flags.plot_steps = 0;
-field_range = nan; % or [-2*Lz, 0];
-flags.plot_steps_nskip = 10;
-
-% substep options
-flags.verbose = 1;
-
-% output options
-flags.output.hdf5 = 1;
-
 
 %% Set lesser used options
 
@@ -72,8 +62,6 @@ addpath(fullfile(ROOTDIR,'assemble'));
 addpath(fullfile(ROOTDIR,'postproc'));
 addpath(fullfile(ROOTDIR,'quadrature'));
 addpath(fullfile(ROOTDIR,'shapefunctions'));
-addpath(fullfile(ROOTDIR,'loadstepping'));
-
 
 % std header
 ned = 3;
@@ -189,4 +177,8 @@ E0 = omega1^2/lambda_1;
 E(:) = E0;
 
 %% Pack the outputs
-
+save('mesh.mat', 'msh', ...
+    'x', 'y', 'z', 'nnp', 'nel', 'eltype', 'IEN', 'rho', ...
+    'E', 'nu', 'ID', 'LM', 'neq', 'gg', 'ng', 'freefree_range', ...
+    'freefix_range', 'ndofs', 'KK_idx_I', 'KK_idx_J', 'omega1', ...
+    'matype', 'A_Fext', 'A_BC');
