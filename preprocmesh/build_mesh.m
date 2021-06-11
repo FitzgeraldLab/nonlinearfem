@@ -39,6 +39,8 @@ ng = full(sum(sum(fix>0)));
 ID = zeros(ned,nnp);
 totaldof = ned*nnp;
 
+gg = zeros( nnz(fix), 1);
+
 % loop over all nodes
 if( nnz(fix) > 0 )
     for  A = 1:nnp
@@ -107,7 +109,7 @@ end
 %%
 function [LM, ID] = renumber_mesh(LM, ned, nen, nnp, nel, eltype, neq, ng, ID, IEN, r1, resortFcn)
 
-[~,I,J,K] = get_nnz_CheckAssembly(LM,ned ,nen ,nnp ,nel, eltype);
+[~,~,~,K] = get_nnz_CheckAssembly(LM,ned ,nen ,nnp ,nel, eltype);
 
 %K = sparse(I,J,1,ned*nnp,ned*nnp);
 

@@ -25,6 +25,7 @@ parfor e = 1:nel
     a = 1:nen_e;
     A = IEN(a,e);
     Xe = [x(A); y(A); z(A)];
+    Me = zeros(nee, nee);
 
     if eltype(e) == 11
         % 10-Node tetrahedron

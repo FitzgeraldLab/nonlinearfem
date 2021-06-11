@@ -16,8 +16,10 @@ Fext_surface = "center"; % top, center, or bottom
 Fext_direction = 3; % 1->x, 2->y, 3->z
 
 % Material constants
+rho0 = 1;
 E0   = 1;
 nu0  = 0.3;
+omega1 = 2*pi*1; % [1 hz to rad/s]
 
 % E0   = 68.9e9;
 % nu0  = 0.3;
@@ -103,6 +105,7 @@ nnp = length(x);
 
 % Material Properties
 % define matrial properties for each element:
+rho(1:nel) = rho0  ;
 E(1:nel)   = E0    ;
 nu(1:nel)  = nu0   ;
 
@@ -168,81 +171,22 @@ qn = zeros(ndofs,1);
 [~,KK_idx_I,KK_idx_J] = get_nnz_CheckAssembly(LM, ned, nen, nnp, nel, ...
     eltype);
 
-% Build K once to check if there are errors.  This step can be removed in
-% production use.
+% Build K once to check if there are errors.
 [K,~] = assemble_K(LM, ned, nen, nnp, nel, eltype, matype,...
     KK_idx_I, KK_idx_J,...
     E, x, y, z, IEN, ID, qn, quad_rules, nu);
+K1 = K(freefree_range,freefree_range);
 
-
-%% build the initial conditions for the next
-q0 = zeros(ndofs,1);
-
-%% Initialize output files
-if flags.output.hdf5
-    hfilename_datestr = datestr(now,'yyyy-mm-dd.HH-MM-SS');
-    hfilename = sprintf('data.%s.h5', hfilename_datestr );
-end
-
-%% Init plot per step
-if flags.plot_steps > 0
-    [fig, ax, hlist] = plot_steps_init(q0, x, y, z, ID, msh, flags, ...
-        Lx, Ly, Lz);
-end
-
-
-%% Load Stepping
-fprintf('------------------------------------------\n')
-if flags.verbose
-    fprintf(' Step | Load     | iter | err    | time \n');
-    fprintf('------------------------------------------\n')
-end
-Fext_load = 0;
-for n = 1:N_load_steps
-    
-    %% increase the load
-    Fext_load = Fext_load + DP;
-    
-    %% solve for new positions (tracing equilibrium here is a simple
-    % continuation scheme)
-    [qn, iter] = loadStep_step(qn, Fext_load, Fext_direction, A_Fext, ...
-    LM, ned, nen, nnp, nel, eltype, matype,...
+% Build M
+[M] = assemble_M(ned, nen, nnp, nel, eltype, ...
     KK_idx_I, KK_idx_J,...
-    E, x, y, z, IEN, ID, quad_rules, nu,...
-    freefree_range, freefix_range, neq, gg, n, flags.verbose);
-    
-    %% output results
-    if flags.output.hdf5
-        write_hdf5_snapshot( hfilename, n, qn, Fext_load, ...
-            'writeDateTime', true, 'subIter', iter.i);
-    end
-    
-    %% update step plot(s)
-    if flags.plot_steps == 1 && mod(n,flags.plot_steps_nskip) == 0
-        hlist = plot_steps(ax, hlist, qn, x, y, z, ID, msh, flags, n, ...
-            Fext_load, field_range);
-    end
-    
-    
-    %% check killflag
-    if flags.checkKillFile
-        flags.kill = checkKillFile();
-        if flags.kill
-            break
-        end
-    end
-    
-    
-end
-N_load_endstep = n;
+    x, y, z, IEN, quad_rules, rho);
+M1 = M(freefree_range,freefree_range);
 
-%%
-if flags.output.hdf5
-    save(['data.',hfilename_datestr,'.mat']);
-end
+%% Scale E
+lambda_1 = eigs(K1,M1,1,'sm');
+E0 = omega1^2/lambda_1;
+E(:) = E0;
 
+%% Pack the outputs
 
-%%
-if flags.checkKillFile
-    checkKillFile('remove', 1);
-end

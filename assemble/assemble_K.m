@@ -30,6 +30,8 @@ parfor e = 1:nel
     A = IEN(a,e);
     Xe = [x(A); y(A); z(A)];
     qe = [qi(ID(1,A)); qi(ID(2,A)); qi(ID(3,A))] ;
+    Ke = zeros(nee, nee);
+    qs = zeros(nee,1);
 
     if eltype(e) == 11
 
