@@ -26,13 +26,13 @@ std_element_defs;
 max_Z = 0.1;
 
 % loading increment (negative or positive to pick direction)
-DP   = 2e-4;
+DP   = 5e-4;
 
 
 %% flags:
 flags.verbose   = true;
 flags.plot_steps_nskip = 10;
-field_range = [0,max_Z*1.1];
+field_range = [0,max_Z*1.2];
 flags.plot_steps = 1;
 flags.plot_fancy = 1;
 flags.plot_colormap = 'default';
@@ -57,7 +57,7 @@ if flags.verbose
     fprintf(' Step | Load     | iter | err    | time \n');
     fprintf('------------------------------------------\n')
 end
-Fext_load = 0;
+Fext_load0 = 0;
 
 stepping.complete = false;
 stepping.iter = 0;
@@ -68,11 +68,11 @@ while stepping.complete == false
     stepping.iter = stepping.iter + 1;
     
     %% increase the load
-    Fext_load = Fext_load + DP;
+    Fext_load1 = Fext_load0 + DP;
     
     %% solve for new positions (tracing equilibrium here is a simple
     % continuation scheme)
-    [qn, info] = loadStep_step(qn, Fext_load, Fext_direction, A_Fext, ...
+    [qn, info] = loadStep_step(qn, Fext_load1, Fext_direction, A_Fext, ...
         LM, ned, nen, nnp, nel, eltype, matype,...
         KK_idx_I, KK_idx_J,...
         E, x, y, z, IEN, ID, quad_rules, nu,...
@@ -83,11 +83,13 @@ while stepping.complete == false
     if flags.plot_steps == 1 && mod(stepping.iter,flags.plot_steps_nskip) == 0
         hlist = plot_static_steps(ax, hlist, qn, x, y, z, ID, msh, ...
             flags, stepping.iter, ...
-            Fext_load, field_range, track_A, track_idx);
+            Fext_load1, field_range, track_A, track_idx);
     end
     
     %% check for end of loop:
-    if qn(track_idx) >= max_Z
+    qX1 = qn(track_idx);
+    
+    if qX1 >= max_Z
         
         stepping.complete = 1;
         
@@ -95,8 +97,77 @@ while stepping.complete == false
     elseif stepping.iter >= stepping.iterMax
        stepping.complete = -1; 
        
+    else
+        
+        qX0 = qX1;
+        Fext_load0 = Fext_load1;
+       
     end
     
+end
+
+%% Method of False Position:
+fprintf('------------------------------------------\n')
+if flags.verbose
+    fprintf(' Step | Load     | iter | err    | time \n');
+    fprintf('------------------------------------------\n')
+end
+
+stepping.complete = false;
+stepping.iter = 0;
+stepping.iterMax = 500;
+stepping.tol = 1e-3;
+
+
+fx0 = qX0 - max_Z;
+while stepping.complete == false
+    
+    stepping.iter = stepping.iter + 1;
+    
+    %% Method of false position
+    fx1 = qX1 - max_Z;
+    Fext_load1 = Fext_load0 - (Fext_load1 - Fext_load0)/( fx1 - fx0 )*fx0;
+    
+    
+    %% solve for new positions (tracing equilibrium here is a simple
+    % continuation scheme)
+    [qn, info] = loadStep_step(qn, Fext_load1, Fext_direction, A_Fext, ...
+        LM, ned, nen, nnp, nel, eltype, matype,...
+        KK_idx_I, KK_idx_J,...
+        E, x, y, z, IEN, ID, quad_rules, nu,...
+        freefree_range, freefix_range, neq, gg, ...
+        stepping.iter, flags.verbose);
+    
+    %% update step plot(s)
+    if flags.plot_steps == 1 && mod(stepping.iter,flags.plot_steps_nskip) == 0
+        hlist = plot_static_steps(ax, hlist, qn, x, y, z, ID, msh, ...
+            flags, stepping.iter, ...
+            Fext_load1, field_range, track_A, track_idx);
+    end
+    
+    %% check for end of loop:
+    qX1 = qn(track_idx);
+     
+    
+    if norm(qX1 - max_Z) <= stepping.tol
+        
+        stepping.complete = 1;
+        
+        
+    elseif stepping.iter >= stepping.iterMax
+       stepping.complete = -1; 
+             
+    end
+    
+end
+
+Fext_load = Fext_load1;
+
+%% update step plot(s)
+if flags.plot_steps == 1
+    hlist = plot_static_steps(ax, hlist, qn, x, y, z, ID, msh, ...
+        flags, stepping.iter, ...
+        Fext_load1, field_range, track_A, track_idx);
 end
 
 %% Save the output:

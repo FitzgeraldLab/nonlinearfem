@@ -1,5 +1,5 @@
-function [fig, ax, hlist] = plot_static_steps_init(q0, x, y, z, ID, msh, ...
-    flags, max_Z, track_A)
+function [fig, ax, hlist] = plot_dynamic_steps_init(q0, x, y, z, ID, msh, ...
+    flags)
 
 % plot the initial conditions
 ps_alpha = 0.5;
@@ -14,8 +14,10 @@ view(ax, [40,16]);
 
 xlim(ax, [min(x),max(x)]*1.1);
 ylim(ax, [min(y),max(y)]*1.1);
-zlim(ax, [min(z)*1.1, max_Z*1.5]);
 
+max_disp = max([abs(min(z) + min(q0)),max(z)+max(q0)]);
+
+zlim(ax, [-1,1]*1.2*max_disp );
 
 %%
 colorbar(ax);
@@ -44,13 +46,7 @@ elseif flags.plot_fancy == 1
         ax, ps_IEN, ID, ps_eltype, x, y, z, q0, ...
         'field', 'displacement-z', ...
         'smoothing', 1, ...
-        'alpha0', ps_alpha);
+        'alpha0', ps_alpha,...
+        'field_range', [-1,1]*max_disp);
 end
-
-
-%%
-temp = plot_node_solution(ax, ID, x, y, z, q0, 'A_in', track_A, ...
-        'markercolor', [0.8500, 0.3250, 0.0980], 'marker', 'o');
-    
-hlist = [hlist, temp];
 
