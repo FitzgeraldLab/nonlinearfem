@@ -20,6 +20,7 @@ rho0 = 1;
 E0   = 1;
 nu0  = 0.3;
 omega1 = 2*pi*1; % [1 hz to rad/s]
+zetaN  = 0.5; % damping factor of the highest frequency resolved
 
 % E0   = 68.9e9;
 % nu0  = 0.3;
@@ -176,9 +177,27 @@ lambda_1 = eigs(K1,M1,1,'sm');
 E0 = omega1^2/lambda_1;
 E(:) = E0;
 
+%% Build the damping matrix
+% [D] = kappa_m*[M] + kappa_k*[K]
+
+[K,~] = assemble_K(LM, ned, nen, nnp, nel, eltype, matype,...
+    KK_idx_I, KK_idx_J,...
+    E, x, y, z, IEN, ID, qn, quad_rules, nu);
+K1 = K(freefree_range,freefree_range);
+
+% mass damping
+kappa_m = 0;
+
+omega_n = sqrt(eigs(K1,M1,1,'lm'));
+% omega_list = sort(sqrt(eig(full(K1),full(M1))));
+kappa_k = 2*zetaN/omega_n;
+D = kappa_m*M + kappa_k*K;
+D1 = D(freefree_range, freefree_range);
+
+
 %% Pack the outputs
 save('mesh.mat', 'msh', ...
     'x', 'y', 'z', 'nnp', 'nel', 'eltype', 'IEN', 'rho', 'quad_rules', ...
     'E', 'nu', 'ID', 'LM', 'neq', 'gg', 'ng', 'freefree_range', ...
-    'freefix_range', 'ndofs', 'KK_idx_I', 'KK_idx_J', 'omega1', ...
-    'matype', 'A_Fext', 'A_BC', 'Fext_direction');
+    'freefix_range', 'ndofs', 'KK_idx_I', 'KK_idx_J', 'omega1', 'zetaN',...
+    'matype', 'A_Fext', 'A_BC', 'Fext_direction', 'M', 'D', 'K');

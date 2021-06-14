@@ -1,4 +1,4 @@
-function [fig, ax, hlist] = plot_dynamic_steps_init(q0, x, y, z, ID, msh, ...
+function [fig, ax, hlist, est_max_disp] = plot_dynamic_steps_init(q0, x, y, z, ID, msh, ...
     flags)
 
 % plot the initial conditions
@@ -16,6 +16,7 @@ xlim(ax, [min(x),max(x)]*1.1);
 ylim(ax, [min(y),max(y)]*1.1);
 
 max_disp = max([abs(min(z) + min(q0)),max(z)+max(q0)]);
+est_max_disp = max_disp;
 
 zlim(ax, [-1,1]*1.2*max_disp );
 
