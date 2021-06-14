@@ -23,6 +23,15 @@ std_element_defs;
 
 %% Define parameters
 
+% working dir
+flags.output.dir = 'temp';
+
+% type of simulation: new, continue
+flags.output.simulation_type = 'continue';
+
+% snapshot to restart from (if continuing)
+flags.output.restart_N = 37;
+
 % Time integration stuff
 N_t_steps = 10000;
 iter.max_steps = 200;
@@ -35,11 +44,11 @@ kineForcingFcn = @(t) boundaryMotion(t,[]);
 flags.plot_RestNodes = 1;
 flags.plot_fancy = 1;
 flags.plot_steps = 1;
-flags.plot_steps_nskip = 1;
+flags.plot_steps_nskip = 10;
 flags.plot_colormap = 'rwb';
 
 % output options
-flags.output.hdf5 = 0;
+flags.output.mat = 1;
 
 % check kill file
 flags.checkKillFile = 1;
@@ -77,12 +86,39 @@ qddn = zeros(ndofs,1);
 
 A_kineForcing = A_BC;
 
+%% Initialize the output files
+
+if strcmpi(flags.output.simulation_type, 'new') 
+    
+    if exist(flags.output.dir, 'dir') == 7 % is a folder
+        error('Output directory already exists: %s\n', flags.output.dir)
+    end
+   
+    [status, msg, msgID] = mkdir(flags.output.dir);
+    
+    n_start = 1;
+    t = 0;
+    
+elseif strcmpi(flags.output.simulation_type, 'continue')
+    
+    n_start = flags.output.restart_N;
+    
+    % load in the state:
+    temp = load(fullfile(flags.output.dir, sprintf('ga.%08d.mat', n_start)));
+    t    = temp.t;
+    qn   = temp.qn;
+    qdn  = temp.qdn;
+    qddn = temp.qddn;
+    
+    clear temp
+end
+
+
 %%
 % start the time march
 fprintf(1,'----------------------\n');
 fprintf(1,'Time Step:\n');
-t = 0;
-for n = 1:N_t_steps
+for n = n_start:N_t_steps
     
     [qn, qdn, qddn, iter] = genAlpha_step(t,dt,qn,qdn,qddn, ...
         M, M1, D, D1, rho_inf, ...
@@ -95,8 +131,9 @@ for n = 1:N_t_steps
     t = t+dt;
     
     % output results
-    if flags.output.hdf5
-        write_hdf5_snapshot(hfilename, n, qn, qdn, t, 'qddn', qddn, 'writeDateTime', true, 'subIter', iter.i);
+    if flags.output.mat
+        save(fullfile(flags.output.dir, sprintf('ga.%08d.mat',n)), ...
+            'n', 'qn', 'qdn', 'qddn', 't');
     end
     
     %%
