@@ -22,7 +22,12 @@ addParameter(p, 'show_surfgridlines', false, @islogical);
 addParameter(p, 'edge_color', 'k');
 addParameter(p, 'edge_width', 1.2, @isnumeric);
 
+addParameter(p, 'line_color', [250, 187, 50]/255 );
+addParameter(p, 'line_width', 1.2, @isnumeric);
+
+
 % HD surf options per element
+addParameter(p, 'e8_pts_per_edge', 5, @isnumeric);
 addParameter(p, 'e9_pts_per_edge', 5, @isnumeric);
 addParameter(p, 'e10_pts_per_edge', 8, @isnumeric);
 
@@ -36,7 +41,11 @@ flag_gridlines = p.Results.show_surfgridlines;
 edge_color = p.Results.edge_color;
 edge_width = p.Results.edge_width;
 
-e9_pts_per_edge = p.Results.e9_pts_per_edge;
+line_color = p.Results.line_color;
+line_width = p.Results.line_width;
+
+e8_pts_per_edge  = p.Results.e8_pts_per_edge;
+e9_pts_per_edge  = p.Results.e9_pts_per_edge;
 e10_pts_per_edge = p.Results.e10_pts_per_edge;
 
 %%
@@ -45,7 +54,19 @@ hlist = [];
 
 %%
 for e = e_in
-    if eltype(e) == 9
+    
+    if eltype(e) == 8
+        % 3-Node Line
+        nen_e = 3;
+        npoints = e8_pts_per_edge;
+        
+        [rx,ry,rz] = get_dof(IEN,ID,nen_e,x,y,z,qn,scalefactor,e);
+        
+        h1 = plot_e8_surface(axes_handle,rx,ry,rz,npoints, line_color,...
+            line_width);
+        hlist = [hlist,h1];
+        
+    elseif eltype(e) == 9
         % 6-Node triangle
         nen_e = 6;
         npoints = e9_pts_per_edge;
@@ -165,6 +186,9 @@ for e = e_in
     
 end
 
+end
+
+%%
 function [rx,ry,rz] = get_dof(IEN,ID,nen_e,x,y,z,qn,scalefactor,e)
 
 A = IEN(1:nen_e,e);
@@ -181,6 +205,36 @@ rx = xe+ue;
 ry = ye+ve;
 rz = ze+we;
 
+end
+
+%%
+function h = plot_e8_surface(axes_handle,xe,ye,ze,npoints, line_color,...
+    line_width)
+% 3-Node Line
+
+% face
+xp = nan(npoints,1);
+yp = nan(npoints,1);
+zp = nan(npoints,1);
+
+r = linspace(-1,1,npoints);
+
+for i1 = 1:npoints
+    rr = r(i1);
+    NN = el8_ShapeFunctions(rr);
+    xp(i1) = NN*(xe);
+    yp(i1) = NN*(ye);
+    zp(i1) = NN*(ze);
+end
+
+h = line(xp, yp, zp,...
+    'Color',line_color,...
+    'LineWidth',line_width,...
+    'Parent',axes_handle);
+end
+
+
+%%
 function h = plot_e9_surface(axes_handle,xe,ye,ze,npoints, surf_color,alpha0,flag_gridlines, edge_color, edge_width)
 % 6-Node triangle
 
@@ -198,7 +252,7 @@ for i1 = 1:npoints
         NN = el9_ShapeFunctions(2*r-1,2*s-1);
         x1p(p) = NN*(xe);
         y1p(p) = NN*(ye);
-        z1p(p) = NN*(ze);        
+        z1p(p) = NN*(ze);
     end
 end
 tri = tessellate_triangle_IEN(npoints);
@@ -253,6 +307,8 @@ if( flag_gridlines == 0 )
         'LineWidth',edge_width,...
         'Parent',axes_handle);
     h = [h,h1];
+end
+
 end
 
 
@@ -333,4 +389,6 @@ if( flag_gridlines == 0 )
         'LineWidth',edge_width,...
         'Parent',axes_handle);
     h = [h,h1];
+end
+
 end
