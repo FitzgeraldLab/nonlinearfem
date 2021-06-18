@@ -4,22 +4,6 @@ clear variables
 close all
 clc
 
-%% load preprocessed data
-% load the mesh and properties
-load('mesh.mat')
-
-path(pathdef)
-ROOTDIR = fullfile('../..');
-addpath(fullfile(ROOTDIR,'preprocmesh'));
-addpath(fullfile(ROOTDIR,'assemble'));
-addpath(fullfile(ROOTDIR,'postproc'));
-addpath(fullfile(ROOTDIR,'shapefunctions'));
-addpath(fullfile(ROOTDIR,'loadstepping'));
-
-% std header
-ned = 3;
-std_element_defs;
-
 %% Define parameters
 
 % maximum displacement to move center of the tip to:

@@ -1,4 +1,4 @@
-function [fig, ax] = plot_ref(Lx, Ly, x, y, z, ID, neq, ng, msh, flags, A_Fext, A_BC)
+function [fig, ax, hlist] = plot_ref(x, y, z, ID, neq, ng, msh, flags, A_Fext, A_BC)
 
 fig = figure();
 ax = axes('Parent',fig,'DataAspectRatio',[1 1 1]);
@@ -9,8 +9,9 @@ ylabel(ax,'y');
 zlabel(ax,'z');
 grid(ax,'on');
 
-xlim(ax, Lx*[-0.05, 1.05])
-ylim(ax, Ly*[-1.05, 1.05])
+
+xlim(ax, [min(x), max(x)]*1.05)
+ylim(ax, [min(y), max(y)]*1.05)
 
 title(ax, 'Reference plot' );
 
@@ -21,21 +22,25 @@ title(ax, 'Reference plot' );
 %%
 qn = zeros(neq+ng, 1);
 %plot_element(ax,1:ps_nel,'g', ps_IEN, ps_eltype, x, y, z);
-plot_element_solution_hdsurf2(ax, 1:ps_nel, ps_IEN, ID, ps_eltype, ...
+hlist = plot_element_solution_hdsurf2(ax, 1:ps_nel, ps_IEN, ID, ps_eltype, ...
     x, y, z, qn,...
     'surf_alpha', 0.1);
 
 
 %%
-plot_node_solution(ax, ID, x, y, z, qn, 'A_in', A_Fext, ...
+temp = plot_node_solution(ax, ID, x, y, z, qn, 'A_in', A_Fext, ...
     'markercolor', 'r');
 
+hlist = [hlist, temp];
+
 if flags.plot_RestNodes == 1
-    plot_node_solution(ax, ID, x, y, z, qn, 'A_in', A_Fext, ...
+    hlist = plot_node_solution(ax, ID, x, y, z, qn, 'A_in', A_Fext, ...
         'markercolor', 'r');
+    hlist = [hlist, temp];
     
-    plot_node_solution(ax, ID, x, y, z, qn, 'A_in', A_BC, ...
+    hlist = plot_node_solution(ax, ID, x, y, z, qn, 'A_in', A_BC, ...
         'markercolor', 'b', 'marker', 'o');
+    hlist = [hlist, temp];
 end
 
 if( flags.plot_ref == 2 )
