@@ -48,6 +48,7 @@ matype0 = 2;
 flags.plot_ref = 1;
 flags.plot_RestNodes = 1;
 flags.plot_fancy = 1;
+flags.plot_centerline = 1;
 
 %% Set lesser used options
 
@@ -148,8 +149,8 @@ A_Fext = find_A_ExtLoad(Fext_location, Fext_surface, ...
     nnp, IEN, g_list, nen, ned, nel, eltype, fix, 'resort', true, 'resort_fcn', @symamd);
 
 %% plot reference configuration
-if flags.plot_ref > 0 
-    plot_ref(x, y, z, ID, neq, ng, msh, flags, A_Fext, A_BC);
+if flags.plot_ref > 0
+    [fig, ax, hlist] = plot_ref(x, y, z, ID, neq, ng, msh, flags, A_Fext, A_BC);
 end
 
 %% build Mass and Stiffness Matrices
@@ -194,6 +195,21 @@ kappa_k = 2*zetaN/omega_n;
 D = kappa_m*M + kappa_k*K;
 D1 = D(freefree_range, freefree_range);
 
+%% find the centerline
+
+[msh_center] = get_centerline(x, y, z, nel_x);
+msh{end+1} = msh_center;
+
+if flags.plot_centerline
+    
+    qn = zeros(ndofs,1);
+    h1 = plot_element_solution_hdsurf2(ax, 1:msh_center.num, ...
+        msh_center.IEN, ID, msh_center.etype, x, y, z, qn, ...
+        'line_width', 4);
+    
+    hlist = [hlist,h1];
+    
+end
 
 %% Pack the outputs
 save('mesh.mat', 'msh', ...
