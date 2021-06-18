@@ -58,4 +58,9 @@ IEN_center
 %% Draw elment 8:
 %TODO: derive 3-node line (element type 8) shape function, and make
 %plotting routines
+qn = zeros(ndofs,1);
+hlist = plot_element_solution_hdsurf2(ax, 1:nel_center, IEN_center, ID,...
+    eltype_center, x, y, z, qn, 'line_width', 4);
+
+
 
