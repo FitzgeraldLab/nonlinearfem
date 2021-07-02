@@ -37,9 +37,35 @@ addpath(fullfile(ROOTDIR,'shapefunctions'));
 ned = 3;
 std_element_defs;
 
+%% Find the center plane
+A_y = find( abs(y) <= 1e-3 );
+Q_y = sort(ID(2,A_y));
+Q_y = Q_y(Q_y <= neq); % prune to only the free range
+
+%
+K1 = K(freefree_range,freefree_range);
+M1 = M(freefree_range,freefree_range);
+
+
+% start at end to avoid reordering as we go
+for i = length(Q_y):-1:1
+    j = Q_y(i);
+    K1(j,:) = [];
+    K1(:,j) = [];
+    
+    M1(j,:) = [];
+    M1(:,j) = [];
+end
+
+
 %%
-[v,d] = eigs(K(freefree_range,freefree_range),...
-    M(freefree_range,freefree_range), 5, 'sm');
+[v,d] = eigs(K1, M1, 5, 'sm');
+
+%% repad with zeros
+for i = 1:length(Q_y)
+    j = Q_y(i);
+    v = [v(1:j-1,:); zeros(1,size(v,2)); v(j:end,:)];    
+end
 
 %%
 q0 = [v(:,1);zeros(ng,1)];
